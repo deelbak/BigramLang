@@ -28,8 +28,26 @@ df = pd.DataFrame({'Bigram': list(bigram_probabilities.keys()), 'Probability': l
 table = df.pivot(index='Bigram', columns='Probability').fillna(0)
 print(table)
 
-# Функция для генерации имени
-def generate_name():
+
+def read_names_from_file(file_path):
+    with open(file_path, 'r', encoding='utf-8') as file:
+        names = file.read().splitlines()
+    return names
+
+def compute_bigram_probabilities(names):
+    bigram_counts = {}
+    for name in names:
+        name = '^' + name + '$'
+        for i in range(len(name) - 1):
+            bigram = name[i:i+2]
+            bigram_counts[bigram] = bigram_counts.get(bigram, 0) + 1
+
+    total_bigrams = sum(bigram_counts.values())
+    bigram_probabilities = {bigram: count / total_bigrams for bigram, count in bigram_counts.items()}
+    
+    return bigram_probabilities
+
+def generate_name(bigram_probabilities):
     name = random.choice(list(bigram_probabilities.keys()))
     while not name.endswith('$'):
         last_char = name[-1]
@@ -39,6 +57,12 @@ def generate_name():
         name += next_char
     return name.replace('^', '').replace('$', '')
 
-# Генерация имени
-generated_name = generate_name()
-print("Generated Name:", generated_name)
+file_path = 'names.txt'
+names = read_names_from_file(file_path)
+bigram_probabilities = compute_bigram_probabilities(names)
+
+generated_name = generate_name(bigram_probabilities)
+print(generated_name)
+
+
+
